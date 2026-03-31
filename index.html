@@ -3,32 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>论坛战力评估系统 - 满格优化版</title>
+    <title>论坛战力评估系统 - 稳定兼容版</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root { --theme-color: #2c3e50; --bg: #f0f2f5; }
-        body { font-family: 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif; background: var(--bg); padding: 20px; display: flex; justify-content: center; }
+        body { font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif; background: var(--bg); padding: 20px; display: flex; justify-content: center; }
         .wrapper { max-width: 1000px; background: white; padding: 30px; border-radius: 28px; box-shadow: 0 25px 60px rgba(0,0,0,0.12); display: flex; flex-wrap: wrap; gap: 40px; }
-        .inputs { flex: 1; min-width: 320px; }
-        .chart-box { flex: 1.5; min-width: 450px; text-align: center; }
-        h1 { width: 100%; text-align: center; color: var(--theme-color); font-weight: 900; letter-spacing: 3px; margin-bottom: 25px; }
+        .inputs { flex: 1; min-width: 300px; }
+        .chart-box { flex: 1.5; min-width: 400px; text-align: center; }
+        h1 { width: 100%; text-align: center; color: var(--theme-color); font-weight: 900; margin-bottom: 20px; }
         
-        .stat-group { margin-bottom: 12px; background: #fff; padding: 12px; border-radius: 12px; border: 1px solid #eee; }
+        .stat-group { margin-bottom: 12px; background: #fafafa; padding: 10px; border-radius: 12px; border: 1px solid #eee; }
         .label-row { display: flex; justify-content: space-between; align-items: center; }
-        .num-input { width: 70px; border: 1px solid #ddd; border-radius: 8px; text-align: center; color: var(--theme-color); font-weight: 800; font-size: 15px; padding: 3px; }
-        input[type="range"] { width: 100%; accent-color: var(--theme-color); cursor: pointer; margin-top: 10px; }
+        .num-input { width: 60px; border: 1px solid #ddd; border-radius: 6px; text-align: center; font-weight: bold; }
+        input[type="range"] { width: 100%; accent-color: var(--theme-color); cursor: pointer; margin-top: 8px; }
         
-        .awakening-zone { margin: 15px 0; padding: 15px; background: #fffcf0; border: 2px solid #f1c40f; border-radius: 15px; display: none; }
-        #titleSelector { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd; font-weight: bold; cursor: pointer; }
-
-        .btn-group { display: flex; gap: 15px; margin-top: 25px; }
-        button { flex: 1; padding: 16px; border: none; border-radius: 14px; font-weight: bold; cursor: pointer; color: white; transition: 0.3s; font-size: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .btn-group { display: flex; gap: 10px; margin-top: 20px; }
+        button { flex: 1; padding: 14px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; color: white; transition: 0.3s; }
         .btn-gen { background: var(--theme-color); }
         .btn-exp { background: #27ae60; }
-        button:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.15); }
-
-        #canvasHolder { background: white; padding: 10px; border-radius: 20px; border: 1px solid #eee; }
-        #avatarPreview { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; display: none; margin: 10px auto; border: 3px solid var(--theme-color); }
+        
+        #canvasHolder { background: white; border: 1px solid #eee; border-radius: 15px; min-height: 600px; display: flex; align-items: center; justify-content: center; position: relative; }
+        #avatarPreview { width: 50px; height: 50px; border-radius: 50%; display: none; margin: 10px auto; border: 2px solid var(--theme-color); }
+        .error-msg { color: red; font-weight: bold; padding: 20px; }
     </style>
 </head>
 <body>
@@ -37,35 +34,31 @@
     <h1>⚔️ 论坛战力评估系统</h1>
     
     <div class="inputs">
-        <div style="display: flex; gap: 15px; align-items: flex-end; margin-bottom: 20px;">
-            <div style="flex: 1;">
-                <label style="font-weight:900; font-size: 11px; color: #999; display: block; margin-bottom: 4px;">USER IDENTIFICATION</label>
-                <input type="text" id="username" value="匿名水友" maxlength="12" style="width:100%; padding:12px; border:2px solid #eee; border-radius:10px; font-weight: bold;">
-            </div>
-            <div style="width: 100px; text-align: center;">
-                <label style="font-size:11px; cursor:pointer; color: var(--theme-color); font-weight: bold;">📸 上传头像
-                    <input type="file" id="avatarInput" accept="image/*" style="display:none;" onchange="handleAvatar(this)">
-                </label>
-                <img id="avatarPreview" src="">
-            </div>
+        <div style="margin-bottom: 20px;">
+            <label style="font-weight:900; font-size: 12px; color: #999;">USER ID</label>
+            <input type="text" id="username" value="匿名水友" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:8px;">
+            <input type="file" id="avatarInput" accept="image/*" style="display:none;" onchange="handleAvatar(this)">
+            <button onclick="document.getElementById('avatarInput').click()" style="background:#eee; color:#333; margin-top:10px; padding:8px; font-size:12px; width:100%;">📸 上传头像 (可选)</button>
+            <img id="avatarPreview">
         </div>
 
         <div id="controls"></div>
 
-        <div id="awakeningZone" class="awakening-zone">
-            <label style="color: #666; font-size: 13px; font-weight: 800; display: block; margin-bottom: 8px;">✨ 多项并列，请手动赋予天命：</label>
-            <select id="titleSelector" onchange="renderChart()"></select>
+        <div id="awakeningZone" style="display:none; margin: 15px 0; padding: 15px; background: #fffcf0; border: 1px solid #f1c40f; border-radius: 10px;">
+            <label style="font-size:12px; font-weight:bold;">✨ 多项并列：</label>
+            <select id="titleSelector" onchange="renderChart()" style="width:100%; padding:5px;"></select>
         </div>
 
         <div class="btn-group">
-            <button class="btn-gen" onclick="renderChart()">🔄 重新评估</button>
-            <button class="btn-exp" onclick="exportImage()">💾 导出评估报告</button>
+            <button class="btn-gen" onclick="renderChart()">🔄 刷新图表</button>
+            <button class="btn-exp" onclick="exportImage()">💾 导出大图</button>
         </div>
     </div>
 
     <div class="chart-box">
         <div id="canvasHolder">
-            <canvas id="radarCanvas" width="600" height="800"></canvas>
+            <div id="statusMsg">正在初始化战力引擎...</div>
+            <canvas id="radarCanvas" width="600" height="850" style="max-width: 100%; height: auto;"></canvas>
         </div>
     </div>
 </div>
@@ -75,7 +68,7 @@
     const configMap = {
         '攻击性': { color: '#ff3e3e', sub: 'rgba(255, 62, 62, 0.15)', title: '狂战士', quote: '生而无畏，战至终章' },
         '辩论能力': { color: '#2980b9', sub: 'rgba(41, 128, 185, 0.15)', title: '智者', quote: '你好，苏格拉底' },
-        '发帖质量': { color: '#27ae60', sub: 'rgba(39, 174, 96, 0.15)', title: '天使', quote: '其称文小而指极大，举类迩而见义远' },
+        '发帖质量': { color: '#27ae60', sub: 'rgba(39, 174, 96, 0.15)', title: '天使', quote: '其称文小而指极大' },
         '活跃度': { color: '#e67e22', sub: 'rgba(230, 126, 34, 0.15)', title: '不死者', quote: '美丽，强大，不死' },
         '专业度': { color: '#2c3e50', sub: 'rgba(44, 62, 80, 0.15)', title: '专家', quote: '高山仰止，景行行止' },
         '淫乱度': { color: '#fd79a8', sub: 'rgba(253, 121, 168, 0.15)', title: '魅魔', quote: '色？空？' },
@@ -83,14 +76,15 @@
         '耕耘者': { color: '#7f8c8d', sub: 'rgba(127, 140, 141, 0.1)', title: '耕耘者', quote: '风里雨里，suen吧等你' }
     };
 
-    let radarChart, userAvatarImg = null;
+    let radarChart = null, userAvatarImg = null;
 
+    // 初始化滑块
     function initInputs() {
         const container = document.getElementById('controls');
         dimNames.forEach((name, i) => {
             container.innerHTML += `
                 <div class="stat-group">
-                    <div class="label-row"><label style="font-weight: 800; color: #444;">${name}</label>
+                    <div class="label-row"><label>${name}</label>
                     <input type="number" id="n${i+1}" min="1" max="5" step="0.01" value="3.00" class="num-input" oninput="sync(${i+1},'n')"></div>
                     <input type="range" id="v${i+1}" min="1" max="5" step="0.01" value="3.00" oninput="sync(${i+1},'v')">
                 </div>`;
@@ -100,116 +94,105 @@
     function sync(id, type) {
         const n = document.getElementById('n'+id), v = document.getElementById('v'+id);
         if(type==='n') v.value = n.value; else n.value = parseFloat(v.value).toFixed(2);
-        checkTies(); 
+        checkTies(); renderChart(); 
     }
 
     function handleAvatar(input) {
-        const file = input.files[0];
-        if (file) {
+        if (input.files && input.files[0]) {
             const reader = new FileReader();
             reader.onload = (e) => {
                 const img = new Image();
+                img.onload = () => { 
+                    userAvatarImg = img; 
+                    document.getElementById('avatarPreview').src = e.target.result;
+                    document.getElementById('avatarPreview').style.display='block';
+                    renderChart();
+                };
                 img.src = e.target.result;
-                img.onload = () => { userAvatarImg = img; document.getElementById('avatarPreview').src = e.target.result; document.getElementById('avatarPreview').style.display='block'; renderChart(); };
             };
-            reader.readAsDataURL(file);
+            reader.readAsDataURL(input.files[0]);
         }
     }
 
     function checkTies() {
         const vals = dimNames.map((_, i) => parseFloat(document.getElementById('n'+(i+1)).value));
         const maxVal = Math.max(...vals);
-        const isDragon = vals.every(v => v >= 4.5);
-        const zone = document.getElementById('awakeningZone');
-        const selector = document.getElementById('titleSelector');
-
-        if (isDragon || maxVal < 4.0) { 
-            zone.style.display = 'none'; 
-        } else {
-            const winners = [];
-            vals.forEach((v, i) => { if(v === maxVal) winners.push(dimNames[i]); });
-            if (winners.length > 1) {
-                zone.style.display = 'block';
-                const current = selector.value; selector.innerHTML = '';
-                winners.forEach(name => {
-                    const opt = document.createElement('option');
-                    opt.value = name; opt.innerText = `觉醒天命：${configMap[name].title}`;
-                    selector.appendChild(opt);
-                });
-                if (winners.includes(current)) selector.value = current;
-            } else { zone.style.display = 'none'; }
-        }
-        updateTheme();
-    }
-
-    function updateTheme() {
-        const vals = dimNames.map((_, i) => parseFloat(document.getElementById('n'+(i+1)).value));
-        const maxVal = Math.max(...vals);
-        const zone = document.getElementById('awakeningZone');
+        const zone = document.getElementById('awakeningZone'), selector = document.getElementById('titleSelector');
         
-        let key;
-        if (vals.every(v => v >= 4.5)) { key = '六角龙'; } 
-        else if (maxVal < 4.0) { key = '耕耘者'; } 
-        else if (zone.style.display === 'block') { key = document.getElementById('titleSelector').value; } 
-        else { key = dimNames[vals.indexOf(maxVal)]; }
+        if (vals.every(v => v >= 4.5) || maxVal < 4.0) { zone.style.display = 'none'; return; }
+
+        const winners = [];
+        vals.forEach((v, i) => { if(v === maxVal) winners.push(dimNames[i]); });
         
-        const cfg = configMap[key];
-        document.documentElement.style.setProperty('--theme-color', cfg.color);
-        return { cfg, key };
+        if (winners.length > 1) {
+            zone.style.display = 'block';
+            const old = selector.value; selector.innerHTML = '';
+            winners.forEach(name => {
+                const opt = document.createElement('option');
+                opt.value = name; opt.innerText = configMap[name].title;
+                selector.appendChild(opt);
+            });
+            if (winners.includes(old)) selector.value = old;
+        } else { zone.style.display = 'none'; }
     }
 
     function renderChart() {
-        const {cfg, key} = updateTheme();
-        const vals = dimNames.map((_, i) => parseFloat(document.getElementById('n'+(i+1)).value));
-        const totalScore = ((vals.reduce((a,b)=>a+b, 0)/30)*100).toFixed(2);
-        const username = document.getElementById('username').value || '匿名水友';
+        // 检查库是否加载
+        if (typeof Chart === 'undefined') {
+            document.getElementById('statusMsg').innerHTML = "<span class='error-msg'>错误：Chart.js 加载失败，请检查网络或刷新页面。</span>";
+            return;
+        }
+        document.getElementById('statusMsg').style.display = 'none';
 
-        const canvas = document.getElementById('radarCanvas'), ctx = canvas.getContext('2d');
+        const vals = dimNames.map((_, i) => parseFloat(document.getElementById('n'+(i+1)).value));
+        const maxVal = Math.max(...vals);
+        
+        let key;
+        if (vals.every(v => v >= 4.5)) key = '六角龙';
+        else if (maxVal < 4.0) key = '耕耘者';
+        else if (document.getElementById('awakeningZone').style.display === 'block') key = document.getElementById('titleSelector').value;
+        else key = dimNames[vals.indexOf(maxVal)];
+
+        const cfg = configMap[key];
+        const ctx = document.getElementById('radarCanvas').getContext('2d');
+        
+        // 销毁旧实例
         if (radarChart) radarChart.destroy();
 
+        // 插件逻辑：在雷达图背景绘制艺术文字
         const customPlugin = {
             id: 'customDecorator',
-            afterDraw: (chart) => {
+            beforeDraw: (chart) => {
                 const {ctx, width, height} = chart;
-                const Phi = 1.618;
                 ctx.save();
                 ctx.fillStyle = 'white'; ctx.fillRect(0,0,width,height);
                 ctx.textAlign = 'center';
 
-                // 1. 用户ID
-                ctx.fillStyle = '#222';
-                ctx.font = '900 28px sans-serif';
-                ctx.fillText(username.toUpperCase(), width/2, 50);
-
-                let currentY = 85;
-
-                // 2. 头像
-                if(userAvatarImg) {
-                    const r = 40;
-                    ctx.save();
-                    ctx.beginPath(); ctx.arc(width/2, currentY + r, r, 0, Math.PI*2); ctx.clip();
-                    ctx.drawImage(userAvatarImg, width/2 - r, currentY, r*2, r*2);
-                    ctx.restore();
-                    ctx.strokeStyle = cfg.color; ctx.lineWidth = 4;
-                    ctx.stroke();
-                    currentY += (r * 2) + 40;
-                } else { currentY += 60; }
-
-                // 3. 称号与赠言
-                ctx.fillStyle = cfg.color;
-                ctx.font = '900 48px "PingFang SC"';
-                ctx.fillText(`【 ${cfg.title} 】`, width/2, currentY + 40);
+                // 1. ID与头像
+                ctx.fillStyle = '#333'; ctx.font = 'bold 24px sans-serif';
+                ctx.fillText((document.getElementById('username').value || '匿名水友').toUpperCase(), width/2, 50);
                 
-                ctx.fillStyle = '#666';
-                ctx.font = 'italic 800 20px "Georgia", serif';
-                ctx.fillText(`“ ${cfg.quote} ”`, width/2, currentY + 80);
+                let y = 100;
+                if(userAvatarImg) {
+                    ctx.save();
+                    ctx.beginPath(); ctx.arc(width/2, y, 35, 0, Math.PI*2); ctx.clip();
+                    ctx.drawImage(userAvatarImg, width/2-35, y-35, 70, 70);
+                    ctx.restore();
+                    y += 80;
+                }
 
-                // 4. 底部分数
-                ctx.fillStyle = cfg.color;
-                ctx.font = '900 80px "Arial Black"';
-                ctx.fillText(totalScore, width/2, height - 70);
-                ctx.fillStyle = '#bbb'; ctx.font = 'bold 12px sans-serif';
-                ctx.fillText('CRITICAL EVALUATION SYSTEM', width/2, height - 40);
+                // 2. 称号
+                ctx.fillStyle = cfg.color; ctx.font = '900 45px "PingFang SC"';
+                ctx.fillText(`【 ${cfg.title} 】`, width/2, y);
+                
+                // 3. 赠言
+                ctx.fillStyle = '#666'; ctx.font = 'italic 18px serif';
+                ctx.fillText(`“ ${cfg.quote} ”`, width/2, y + 45);
+                
+                // 4. 总分
+                const total = ((vals.reduce((a,b)=>a+b, 0)/30)*100).toFixed(2);
+                ctx.fillStyle = cfg.color; ctx.font = '900 70px Arial';
+                ctx.fillText(total, width/2, height - 60);
                 ctx.restore();
             }
         };
@@ -220,27 +203,21 @@
                 labels: dimNames,
                 datasets: [{
                     data: vals,
-                    backgroundColor: cfg.sub, borderColor: cfg.color, borderWidth: 6,
-                    pointBackgroundColor: cfg.color, pointBorderColor: '#fff', pointRadius: 6
+                    backgroundColor: cfg.sub,
+                    borderColor: cfg.color,
+                    borderWidth: 4,
+                    pointRadius: 4
                 }]
             },
             options: {
                 responsive: false,
-                // 重要：控制图表在 Canvas 中的位置
-                layout: { padding: { top: 320, bottom: 140, left: 50, right: 50 } },
+                layout: { padding: { top: 300, bottom: 120, left: 50, right: 50 } },
                 scales: { 
                     r: { 
-                        min: 0, 
-                        max: 5, // 锁定最大值
-                        beginAtZero: true,
-                        ticks: { display: false, stepSize: 1 },
-                        grid: { color: 'rgba(0,0,0,0.1)', lineWidth: 1 },
-                        angleLines: { color: 'rgba(0,0,0,0.1)' },
-                        pointLabels: { 
-                            font: { size: 16, weight: '900' }, 
-                            color: '#333',
-                            padding: 20 // 增加标签间距，防止文字和网格重叠
-                        }
+                        min: 0, max: 5, suggestedMax: 5,
+                        ticks: { display: false },
+                        grid: { color: 'rgba(0,0,0,0.1)' },
+                        pointLabels: { font: { size: 16, weight: 'bold' }, color: '#444' }
                     } 
                 },
                 plugins: { legend: { display: false } }
@@ -250,16 +227,17 @@
     }
 
     function exportImage() {
-        renderChart();
-        setTimeout(() => {
-            const link = document.createElement('a');
-            link.download = `战力图_${document.getElementById('username').value}.png`;
-            link.href = document.getElementById('radarCanvas').toDataURL('image/png', 1.0);
-            link.click();
-        }, 200);
+        const link = document.createElement('a');
+        link.download = `战力图_${document.getElementById('username').value}.png`;
+        link.href = document.getElementById('radarCanvas').toDataURL('image/png');
+        link.click();
     }
 
-    window.onload = () => { initInputs(); renderChart(); };
+    // 确保脚本最后运行
+    window.onload = () => {
+        initInputs();
+        setTimeout(renderChart, 500); // 延迟半秒确保渲染环境就绪
+    };
 </script>
 </body>
 </html>
