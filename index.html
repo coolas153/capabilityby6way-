@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>论坛战力评估 - 自由天命版</title>
+    <title>论坛战力评估 - 复合天命版</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root { --theme-color: #2c3e50; --bg: #f0f2f5; }
@@ -12,21 +12,16 @@
         .inputs { flex: 1; min-width: 300px; }
         .chart-box { flex: 1.5; min-width: 400px; text-align: center; }
         h1 { width: 100%; text-align: center; color: var(--theme-color); font-weight: 900; margin-bottom: 20px; }
-        
         .stat-group { margin-bottom: 10px; background: #fafafa; padding: 10px; border-radius: 12px; border: 1px solid #eee; }
         .label-row { display: flex; justify-content: space-between; align-items: center; }
         .num-input { width: 65px; border: 1px solid #ddd; border-radius: 6px; text-align: center; font-weight: bold; padding: 3px; color: var(--theme-color); }
         input[type="range"] { width: 100%; accent-color: var(--theme-color); cursor: pointer; margin-top: 8px; }
-        
-        /* 觉醒区域样式增强 */
         .awakening-zone { margin: 15px 0; padding: 15px; background: #fdfaf0; border: 1px solid #f1c40f; border-radius: 12px; }
         #titleSelector { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd; font-weight: bold; cursor: pointer; color: #444; }
-
         .btn-group { display: flex; gap: 10px; margin-top: 20px; }
         button { flex: 1; padding: 14px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; color: white; transition: 0.3s; }
         .btn-gen { background: var(--theme-color); }
         .btn-exp { background: #27ae60; }
-        
         #canvasHolder { background: white; border: 1px solid #eee; border-radius: 15px; position: relative; padding: 10px; }
         #avatarPreview { width: 50px; height: 50px; border-radius: 50%; display: none; margin: 10px auto; border: 2px solid var(--theme-color); }
     </style>
@@ -35,7 +30,6 @@
 
 <div class="wrapper">
     <h1>⚔️ 论坛战力评估系统</h1>
-    
     <div class="inputs">
         <div style="margin-bottom: 20px;">
             <label style="font-weight:900; font-size: 11px; color: #999;">USER ID</label>
@@ -44,39 +38,44 @@
             <button onclick="document.getElementById('avatarInput').click()" style="background:#f8f9fa; color:#666; margin-top:10px; padding:10px; font-size:12px; width:100%; border:1px solid #ddd; border-radius:8px; cursor:pointer;">📸 上传头像</button>
             <img id="avatarPreview">
         </div>
-
         <div id="controls"></div>
-
         <div id="awakeningZone" class="awakening-zone" style="display:none;">
-            <label style="font-size:12px; font-weight:bold; color: #856404; margin-bottom: 5px; display: block;">✨ 自由选择称号 (当前优先最高分)：</label>
+            <label style="font-size:12px; font-weight:bold; color: #856404; margin-bottom: 5px; display: block;">✨ 职业觉醒 (自由切换候选称号)：</label>
             <select id="titleSelector" onchange="renderChart()"></select>
         </div>
-
         <div class="btn-group">
-            <button class="btn-gen" onclick="renderChart()">🔄 立即刷新</button>
-            <button class="btn-exp" onclick="exportImage()">💾 导出大图</button>
+            <button class="btn-gen" onclick="renderChart()">🔄 刷新</button>
+            <button class="btn-exp" onclick="exportImage()">💾 导出</button>
         </div>
     </div>
-
     <div class="chart-box">
-        <div id="canvasHolder">
-            <canvas id="radarCanvas" width="600" height="720"></canvas>
-        </div>
+        <div id="canvasHolder"><canvas id="radarCanvas" width="600" height="720"></canvas></div>
     </div>
 </div>
 
 <script>
     const dimNames = ['攻击性', '辩论能力', '发帖质量', '活跃度', '专业度', '淫乱度'];
     const configMap = {
-        '攻击性': { color: '#ff3e3e', sub: 'rgba(255, 62, 62, 0.15)', title: '狂战士', quote: '生而无畏，战至终章' },
+        '攻击性': { color: '#e74c3c', sub: 'rgba(231, 76, 60, 0.15)', title: '狂战士', quote: '生而无畏，战至终章' },
         '辩论能力': { color: '#2980b9', sub: 'rgba(41, 128, 185, 0.15)', title: '智者', quote: '你好，苏格拉底' },
         '发帖质量': { color: '#27ae60', sub: 'rgba(39, 174, 96, 0.15)', title: '天使', quote: '其称文小而指极大' },
         '活跃度': { color: '#e67e22', sub: 'rgba(230, 126, 34, 0.15)', title: '不死者', quote: '美丽，强大，不死' },
         '专业度': { color: '#2c3e50', sub: 'rgba(44, 62, 80, 0.15)', title: '专家', quote: '高山仰止，景行行止' },
         '淫乱度': { color: '#fd79a8', sub: 'rgba(253, 121, 168, 0.15)', title: '魅魔', quote: '色？空？' },
+        
+        // 复合称号
+        '辩手': { color: '#c0392b', sub: 'rgba(192, 57, 43, 0.15)', title: '辩手', quote: '战士应当视死如归' },
+        '锐评者': { color: '#d35400', sub: 'rgba(211, 84, 0, 0.15)', title: '锐评者', quote: '若批评无自由，则赞美无意义' },
+        'Waaaaa': { color: '#c0392b', sub: 'rgba(192, 57, 43, 0.15)', title: '狂战士', quote: 'Waaaaaaaagh!' },
+        '老资历': { color: '#34495e', sub: 'rgba(52, 73, 94, 0.15)', title: '老资历', quote: '给领域大神跪了' },
+        'Forumer': { color: '#2980b9', sub: 'rgba(41, 128, 185, 0.15)', title: 'Forumer', quote: '论坛就是用来论的' },
+        'Grok': { color: '#16a085', sub: 'rgba(22, 160, 133, 0.15)', title: 'Grok', quote: 'Is this true?' },
+        '指导意见': { color: '#2c3e50', sub: 'rgba(44, 62, 80, 0.15)', title: '指导意见', quote: '原来是这样，感谢' },
         '近战魅魔': { color: '#8e44ad', sub: 'rgba(142, 68, 173, 0.18)', title: '近战魅魔', quote: '尖牙利嘴，蜜语甜言' },
+        
+        // 特殊称号
         '六角龙': { color: '#d4af37', sub: 'rgba(212, 175, 55, 0.2)', title: '六角龙', quote: '完美的终极形态' },
-        '耕耘者': { color: '#7f8c8d', sub: 'rgba(127, 140, 141, 0.1)', title: '耕耘者', quote: '风里雨里，suen吧等你' }
+        '耕耘者': { color: '#7f8c8d', sub: 'rgba(127, 140, 141, 0.1)', title: '耕耘者', quote: '你们是彣彰的基石' }
     };
 
     let radarChart = null, userAvatarImg = null;
@@ -112,52 +111,53 @@
         }
     }
 
-    // 核心逻辑：扫描所有可选称号
     function checkAvailableTitles() {
         const vals = dimNames.map((_, i) => parseFloat(document.getElementById('n'+(i+1)).value));
-        const maxVal = Math.max(...vals);
-        const zone = document.getElementById('awakeningZone'), selector = document.getElementById('titleSelector');
-        
-        // 记录之前选中的值，以便刷新时尽量保留
+        const selector = document.getElementById('titleSelector');
         const previousSelection = selector.value;
-        
-        // 清空选项
         selector.innerHTML = '';
 
-        // 1. 六角龙判定
+        // 全满判定
         if (vals.every(v => v >= 4.5)) {
             addOption(selector, '六角龙');
-            zone.style.display = 'block';
-            return; 
+            document.getElementById('awakeningZone').style.display = 'block';
+            return;
         }
 
-        // 2. 收集所有达标(>=4.0)的称号
         let available = [];
+        const isSet = (idx) => vals[idx] >= 4.0;
+
+        // 1. 双维度复合判定 (优先检查)
+        if (isSet(0) && isSet(1)) available.push({ key: '辩手', score: 9.1 }); // 攻击+辩论
+        if (isSet(0) && isSet(2)) available.push({ key: '锐评者', score: 9.1 }); // 攻击+质量
+        if (isSet(0) && isSet(3)) available.push({ key: 'Waaaaa', score: 9.1 }); // 攻击+活跃
+        if (isSet(0) && isSet(4)) available.push({ key: '老资历', score: 9.1 }); // 攻击+专业
+        if (isSet(0) && isSet(5)) available.push({ key: '近战魅魔', score: 9.1 }); // 攻击+淫乱
+        if (isSet(1) && isSet(2)) available.push({ key: '辩论能力', score: 9.0 }); // 辩论+质量 (与辩论能力配置相同)
+        if (isSet(1) && isSet(3)) available.push({ key: 'Forumer', score: 9.0 }); // 辩论+活跃
+        if (isSet(1) && isSet(4)) available.push({ key: 'Grok', score: 9.0 }); // 辩论+专业
+        if (isSet(2) && isSet(3)) available.push({ key: '活跃度', score: 8.9 }); // 质量+活跃 (不死者)
+        if (isSet(2) && isSet(4)) available.push({ key: '专业度', score: 8.9 }); // 质量+专业 (专家)
+        if (isSet(3) && isSet(4)) available.push({ key: '指导意见', score: 8.9 }); // 活跃+专业
+
+        // 2. 单维度达标判定
         vals.forEach((v, i) => {
-            if (v >= 4.0) available.push({ name: dimNames[i], score: v });
+            if (v >= 4.0) available.push({ key: dimNames[i], score: v });
         });
 
-        // 3. 特殊判定：近战魅魔
-        if (vals[0] >= 4.0 && vals[5] >= 4.0) {
-            available.push({ name: '近战魅魔', score: (vals[0] + vals[5]) / 2 });
-        }
-
         if (available.length > 0) {
-            zone.style.display = 'block';
-            // 按分数从高到低排序，确保“优先显示评分最高”
+            document.getElementById('awakeningZone').style.display = 'block';
             available.sort((a, b) => b.score - a.score);
-            
-            available.forEach(item => addOption(selector, item.name));
-
-            // 如果之前选的依然在可选列表里，保留它；否则默认选最高分那个
-            const namesOnly = available.map(a => a.name);
-            if (namesOnly.includes(previousSelection)) {
-                selector.value = previousSelection;
-            } else {
-                selector.value = namesOnly[0];
-            }
+            const seen = new Set();
+            available.forEach(item => {
+                if(!seen.has(item.key)){
+                    addOption(selector, item.key);
+                    seen.add(item.key);
+                }
+            });
+            selector.value = seen.has(previousSelection) ? previousSelection : available[0].key;
         } else {
-            zone.style.display = 'none';
+            document.getElementById('awakeningZone').style.display = 'none';
         }
     }
 
@@ -173,31 +173,19 @@
         const maxVal = Math.max(...vals);
         const selector = document.getElementById('titleSelector');
         
-        let key;
-        // 如果有可选列表且用户选了，用用户选的；否则判断是否是低分耕耘者
-        if (selector.innerHTML !== "" && document.getElementById('awakeningZone').style.display !== 'none') {
-            key = selector.value;
-        } else if (maxVal < 4.0) {
-            key = '耕耘者';
-        } else {
-            // 保底逻辑：取最高项
-            key = dimNames[vals.indexOf(maxVal)];
-        }
+        let key = (selector.innerHTML !== "" && document.getElementById('awakeningZone').style.display !== 'none') 
+                  ? selector.value : (maxVal < 4.0 ? '耕耘者' : dimNames[vals.indexOf(maxVal)]);
 
         const cfg = configMap[key];
-        const canvas = document.getElementById('radarCanvas');
-        const ctx = canvas.getContext('2d');
+        const ctx = document.getElementById('radarCanvas').getContext('2d');
         if (radarChart) radarChart.destroy();
 
         const customPlugin = {
             id: 'tightLayout',
             beforeDraw: (chart) => {
                 const {ctx, width, height} = chart;
-                ctx.save();
-                ctx.fillStyle = 'white'; ctx.fillRect(0,0,width,height);
+                ctx.save(); ctx.fillStyle = 'white'; ctx.fillRect(0,0,width,height);
                 ctx.textAlign = 'center';
-                
-                // 用户ID
                 ctx.fillStyle = '#333'; ctx.font = 'bold 26px sans-serif';
                 ctx.fillText((document.getElementById('username').value || '匿名水友').toUpperCase(), width/2, 45);
                 
@@ -205,17 +193,14 @@
                 if(userAvatarImg) {
                     ctx.save(); ctx.beginPath(); ctx.arc(width/2, y, 35, 0, Math.PI*2); ctx.clip();
                     ctx.drawImage(userAvatarImg, width/2-35, y-35, 70, 70); ctx.restore();
-                    ctx.strokeStyle = cfg.color; ctx.lineWidth = 3; ctx.stroke(); 
-                    y += 80;
+                    ctx.strokeStyle = cfg.color; ctx.lineWidth = 3; ctx.stroke(); y += 80;
                 } else { y += 25; }
 
-                // 称号与赠言
                 ctx.fillStyle = cfg.color; ctx.font = '900 46px "PingFang SC"';
                 ctx.fillText(`【 ${cfg.title} 】`, width/2, y);
                 ctx.fillStyle = '#555'; ctx.font = 'italic 18px serif';
                 ctx.fillText(`“ ${cfg.quote} ”`, width/2, y + 42);
 
-                // 总分
                 const total = ((vals.reduce((a,b)=>a+b, 0)/30)*100).toFixed(2);
                 ctx.fillStyle = cfg.color; ctx.font = '900 70px Arial';
                 ctx.fillText(total, width/2, height - 55);
@@ -247,12 +232,8 @@
                         grid: { color: 'rgba(0,0,0,0.08)' },
                         angleLines: { color: 'rgba(0,0,0,0.08)' },
                         pointLabels: { 
-                            font: { size: 16, weight: 'bold' }, 
-                            color: '#333',
-                            padding: 15,
-                            callback: function(label, index) {
-                                return `${label} ${vals[index].toFixed(2)}`;
-                            }
+                            font: { size: 16, weight: 'bold' }, color: '#333', padding: 15,
+                            callback: (l, i) => `${l} ${vals[i].toFixed(2)}`
                         }
                     } 
                 },
@@ -264,7 +245,7 @@
 
     function exportImage() {
         const link = document.createElement('a');
-        link.download = `战力评估_${document.getElementById('username').value}.png`;
+        link.download = `战力_${document.getElementById('username').value}.png`;
         link.href = document.getElementById('radarCanvas').toDataURL('image/png', 1.0);
         link.click();
     }
